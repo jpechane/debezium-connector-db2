@@ -9,7 +9,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>debezium-connector-db2</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <name>Debezium Connector for IBM DB2 Server</name>
     <packaging>jar</packaging>
 
@@ -22,7 +22,8 @@
 
     <properties>
         <!-- Debezium parent -->
-        <version.debezium>${project.version}</version.debezium>
+        <version.debezium>2.0.0-SNAPSHOT</version.debezium>
+        <debezium.version>2.0.0-SNAPSHOT</debezium.version>
 
         <!--
           Specify the properties that will be used for setting up the integration tests' Docker container.
@@ -342,7 +343,7 @@
                             <dependency>
                                 <groupId>io.debezium</groupId>
                                 <artifactId>debezium-assembly-descriptors</artifactId>
-                                <version>${project.version}</version>
+                                <version>${version.debezium}</version>
                             </dependency>
                         </dependencies>
                         <executions>
@@ -353,7 +354,7 @@
                                     <goal>single</goal>
                                 </goals>
                                 <configuration>
-                                    <finalName>${project.artifactId}-${project.version}</finalName>
+                                    <finalName>${project.artifactId}-${version.debezium}</finalName>
                                     <attach>true</attach>  <!-- we want attach & deploy these to Maven -->
                                     <descriptorRefs>
                                         <descriptorRef>${assembly.descriptor}</descriptorRef>
