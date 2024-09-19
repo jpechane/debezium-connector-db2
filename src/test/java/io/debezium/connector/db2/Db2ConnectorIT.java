@@ -565,12 +565,15 @@ public class Db2ConnectorIT extends AbstractConnectorTest {
             // Wait for snapshot to be completed
             consumeRecordsByTopic(1);
             stopConnector();
+            System.out.println("after stop");
             connection.execute("INSERT INTO tablea VALUES(-1, '-a')");
             TestHelper.refreshAndWait(connection);
 
         }
 
+        System.out.println("before start");
         start(Db2Connector.class, config, record -> {
+            System.out.println(record);
             if (!"testdb.DB2INST1.TABLEA.Envelope".equals(record.valueSchema().name())) {
                 return false;
             }
@@ -581,9 +584,10 @@ public class Db2ConnectorIT extends AbstractConnectorTest {
             return id != null && id == HALF_ID && "a".equals(value);
         });
         assertConnectorIsRunning();
+        waitForStreamingRunning("db2_server", "testdb");
 
         // Wait for snapshot to be completed or a first streaming message delivered
-        consumeRecordsByTopic(1);
+        System.out.println("++++++++++++++++++ " + consumeRecordsByTopic(1));
 
         TestHelper.enableDbCdc(connection);
         connection.execute("UPDATE ASNCDC.IBMSNAP_REGISTER SET STATE = 'A' WHERE SOURCE_OWNER = 'DB2INST1'");
@@ -599,6 +603,7 @@ public class Db2ConnectorIT extends AbstractConnectorTest {
             assertRecord(((Struct) records.allRecordsInOrder().get(0).value()).getStruct(Envelope.FieldName.AFTER), expectedRow);
         }
 
+        System.out.println("Before insert");
         connection.setAutoCommit(false);
         for (int i = 0; i < RECORDS_PER_TABLE; i++) {
             final int id = ID_START + i;
@@ -608,9 +613,11 @@ public class Db2ConnectorIT extends AbstractConnectorTest {
                     "INSERT INTO tableb VALUES(" + id + ", 'b')");
         }
         connection.connection().commit();
+        System.out.println("After insert");
 
         // TestHelper.waitForCDC();
         TestHelper.refreshAndWait(connection);
+        System.out.println("After refreshAndWait");
 
         List<SourceRecord> records = consumeRecordsByTopic(RECORDS_PER_TABLE).allRecordsInOrder();
 
@@ -622,6 +629,7 @@ public class Db2ConnectorIT extends AbstractConnectorTest {
                 new SchemaAndValueField("COLB", Schema.OPTIONAL_STRING_SCHEMA, "b"));
         assertRecord((Struct) value.get("after"), expectedLastRow);
 
+        // waitForConnectorShutdown("db2_server", "testdb");
         stopConnector();
         start(Db2Connector.class, config);
         assertConnectorIsRunning();
